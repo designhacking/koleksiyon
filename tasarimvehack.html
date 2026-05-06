@@ -1,0 +1,969 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tasarım ve Hackleme</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=DM+Serif+Display:ital@0;1&family=Unbounded:wght@300;400;700;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f6f8fb;
+  --bg2:#ffffff;
+  --fg:#151b2d;
+  --fg2:#5e6880;
+  --accent:#ff5a36;
+  --accent2:#ff7a5f;
+  --border:#dbe2ee;
+  --card:#ffffff;
+  --hover:#eff3f9;
+  --tag-bg:#f2f5fa;
+  --tag-active:#ff5a36;
+  --font-display:'Unbounded',sans-serif;
+  --font-body:'Space Mono',monospace;
+  --font-serif:'DM Serif Display',serif;
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--fg);font-family:var(--font-body);font-size:13px;line-height:1.6;overflow-x:hidden}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;background:var(--bg);border-bottom:1px solid var(--border);display:flex;align-items:stretch;height:60px}
+.nav-brand{display:flex;align-items:center;padding:0 28px;border-right:1px solid var(--border);text-decoration:none}
+.nav-brand span{font-family:var(--font-display);font-weight:900;font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--fg);line-height:1.2}
+.nav-brand span em{display:block;color:var(--accent);font-style:normal}
+.nav-actions{margin-left:auto;display:flex;align-items:center;gap:0}
+.nav-btn{height:100%;padding:0 20px;background:none;border:none;border-left:1px solid var(--border);color:var(--fg2);cursor:pointer;font-family:var(--font-body);font-size:11px;letter-spacing:0.1em;text-transform:uppercase;transition:all 0.2s}
+.nav-btn:hover{color:var(--fg);background:var(--hover)}
+.nav-btn.active{color:var(--accent)}
+
+/* HEADER */
+header{margin-top:60px;padding:72px 28px 56px;border-bottom:1px solid var(--border);position:relative;overflow:hidden}
+header::before{content:'';position:absolute;top:-1px;left:0;right:0;height:1px;background:var(--accent)}
+.header-content{max-width:320px}
+.header-label{font-family:var(--font-body);font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:var(--fg2);margin-bottom:16px}
+.header-title{font-family:var(--font-serif);font-size:clamp(28px,4.2vw,48px);line-height:1;letter-spacing:-0.005em;color:var(--fg)}
+.header-title em{display:block;font-style:italic;color:var(--accent)}
+.header-line{position:absolute;bottom:0;left:0;height:3px;background:var(--accent);width:60px}
+
+/* TAG FILTER */
+.tag-section{padding:24px 28px;border-bottom:1px solid var(--border);position:sticky;top:60px;z-index:50;background:var(--bg)}
+.tag-row{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.tag-btn{background:var(--tag-bg);border:1px solid var(--border);color:var(--fg2);padding:6px 14px;font-family:var(--font-body);font-size:11px;letter-spacing:0.08em;cursor:pointer;transition:all 0.15s;position:relative}
+.tag-btn:hover{border-color:var(--fg2);color:var(--fg)}
+.tag-btn.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.tag-btn.sub{font-size:10px;padding:4px 10px;opacity:0.7}
+.tag-btn.sub.active{opacity:1}
+.sub-tags{display:none;width:100%;padding-top:8px}
+.sub-tags.visible{display:flex;flex-wrap:wrap;gap:4px}
+.tag-all{background:none;border:1px solid var(--border);color:var(--fg2);padding:6px 14px;font-family:var(--font-body);font-size:11px;letter-spacing:0.08em;cursor:pointer;transition:all 0.15s}
+.tag-all:hover,.tag-all.active{border-color:var(--fg);color:var(--fg)}
+
+/* GALLERY */
+.gallery-wrap{padding:28px}
+.gallery-grid{columns:3;column-gap:12px}
+@media(max-width:900px){.gallery-grid{columns:2}}
+@media(max-width:550px){.gallery-grid{columns:1}}
+.gallery-item{break-inside:avoid;margin-bottom:12px;position:relative;cursor:pointer;overflow:hidden;background:var(--card);border:1px solid var(--border)}
+.gallery-item img{width:100%;display:block;transition:transform 0.4s ease,filter 0.4s ease;filter:grayscale(20%)}
+.gallery-item:hover img{transform:scale(1.03);filter:grayscale(0%)}
+.gallery-overlay{position:absolute;inset:0;background:rgba(21,27,45,0.72);display:flex;flex-direction:column;justify-content:flex-end;padding:20px;opacity:0;transition:opacity 0.3s ease;pointer-events:none}
+.gallery-item:hover .gallery-overlay{opacity:1}
+.overlay-desc{font-family:var(--font-body);font-size:12px;color:var(--fg);line-height:1.6;margin-bottom:12px}
+.overlay-tags{display:flex;flex-wrap:wrap;gap:4px}
+.overlay-tag{font-size:9px;letter-spacing:0.12em;text-transform:uppercase;padding:3px 7px;background:var(--accent);color:#fff}
+.gallery-item-no-img{min-height:200px;display:flex;align-items:center;justify-content:center;color:var(--fg2);font-size:11px}
+.img-placeholder{width:100%;aspect-ratio:4/3;background:var(--card);display:flex;align-items:center;justify-content:center;color:var(--fg2);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;border-bottom:1px solid var(--border)}
+
+/* EMPTY STATE */
+.empty-state{padding:80px 28px;text-align:center;color:var(--fg2)}
+.empty-state p{font-size:11px;letter-spacing:0.15em;text-transform:uppercase}
+
+/* ADMIN PANEL */
+#admin-panel{display:none;position:fixed;inset:0;z-index:200;background:var(--bg);overflow-y:auto}
+#admin-panel.open{display:block}
+.admin-header{position:sticky;top:0;background:var(--bg);border-bottom:1px solid var(--border);display:flex;align-items:center;height:60px;padding:0 28px;gap:20px;z-index:10}
+.admin-title{font-family:var(--font-display);font-size:10px;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;color:var(--accent)}
+.admin-close{margin-left:auto;background:none;border:1px solid var(--border);color:var(--fg2);padding:8px 16px;cursor:pointer;font-family:var(--font-body);font-size:11px;letter-spacing:0.1em;transition:all 0.2s}
+.admin-close:hover{border-color:var(--fg);color:var(--fg)}
+.admin-tabs{display:flex;border-bottom:1px solid var(--border)}
+.admin-tab{padding:16px 24px;background:none;border:none;color:var(--fg2);cursor:pointer;font-family:var(--font-body);font-size:11px;letter-spacing:0.1em;text-transform:uppercase;border-bottom:2px solid transparent;transition:all 0.2s}
+.admin-tab.active{color:var(--fg);border-bottom-color:var(--accent)}
+.admin-content{padding:28px;display:none}
+.admin-content.active{display:block}
+.admin-login{max-width:420px;margin:72px auto;padding:28px;border:1px solid var(--border);background:var(--card)}
+.admin-login-title{font-family:var(--font-display);font-size:10px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:var(--accent);margin-bottom:18px}
+.admin-login-row{display:flex;gap:8px;margin-top:10px}
+
+/* ADMIN FORMS */
+.form-group{margin-bottom:20px}
+.form-label{display:block;font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--fg2);margin-bottom:8px}
+.form-input,.form-textarea,.form-select{width:100%;background:var(--card);border:1px solid var(--border);color:var(--fg);font-family:var(--font-body);font-size:12px;padding:10px 14px;outline:none;transition:border-color 0.2s}
+.form-input:focus,.form-textarea:focus,.form-select:focus{border-color:var(--accent)}
+.form-textarea{min-height:80px;resize:vertical}
+.form-select option{background:var(--bg)}
+.btn-primary{background:var(--accent);border:none;color:#fff;padding:10px 20px;font-family:var(--font-body);font-size:11px;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer;transition:background 0.2s}
+.btn-primary:hover{background:var(--accent2)}
+.btn-ghost{background:none;border:1px solid var(--border);color:var(--fg2);padding:8px 16px;font-family:var(--font-body);font-size:11px;letter-spacing:0.1em;cursor:pointer;transition:all 0.2s}
+.btn-ghost:hover{border-color:var(--fg);color:var(--fg)}
+.btn-danger{background:none;border:1px solid #500;color:#e55;padding:6px 12px;font-family:var(--font-body);font-size:10px;cursor:pointer;transition:all 0.2s}
+.btn-danger:hover{background:#e55;color:#fff;border-color:#e55}
+
+/* ADMIN LISTS */
+.item-list{display:flex;flex-direction:column;gap:8px}
+.list-item{background:var(--card);border:1px solid var(--border);padding:14px 16px;display:flex;align-items:flex-start;gap:12px}
+.list-item-info{flex:1}
+.list-item-name{font-size:12px;font-weight:700;margin-bottom:4px;color:var(--fg)}
+.list-item-meta{font-size:10px;color:var(--fg2);letter-spacing:0.05em}
+.list-item-actions{display:flex;gap:6px;align-items:center;flex-shrink:0}
+.img-thumb{width:60px;height:45px;object-fit:cover;flex-shrink:0;background:var(--hover);border:1px solid var(--border)}
+
+/* TAG ADMIN */
+.tag-admin-item{background:var(--card);border:1px solid var(--border);padding:12px 16px;display:flex;align-items:center;gap:10px}
+.tag-color-dot{width:10px;height:10px;border-radius:50%;background:var(--accent);flex-shrink:0}
+.tag-parent-label{font-size:9px;color:var(--fg2);letter-spacing:0.1em;text-transform:uppercase;margin-top:2px}
+
+/* DESC MATRIX */
+.desc-matrix{display:grid;gap:8px}
+.desc-matrix-item{background:var(--hover);border:1px solid var(--border);padding:12px}
+.desc-matrix-label{font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
+
+/* DIVIDER */
+.divider{border:none;border-top:1px solid var(--border);margin:28px 0}
+.section-title{font-family:var(--font-display);font-size:10px;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;color:var(--fg2);margin-bottom:16px}
+.admin-tools{display:flex;gap:8px;align-items:center;margin-bottom:16px;flex-wrap:wrap}
+
+/* URL INPUT helper */
+.file-or-url{display:flex;gap:8px;align-items:flex-end}
+.file-or-url .form-input{flex:1}
+.or-label{font-size:10px;color:var(--fg2);padding-bottom:10px;white-space:nowrap}
+.file-hint{margin-top:6px;font-size:10px;color:var(--fg2)}
+
+/* TOAST */
+.toast{position:fixed;bottom:28px;right:28px;background:var(--accent);color:#fff;padding:12px 20px;font-size:11px;letter-spacing:0.1em;z-index:999;transform:translateY(100px);opacity:0;transition:all 0.3s}
+.toast.show{transform:translateY(0);opacity:1}
+.status-note{padding:10px 28px;border-bottom:1px solid var(--border);background:#fff4e8;color:#7a4a20;font-size:11px;display:none}
+.status-note.show{display:block}
+
+/* IMAGE MODAL */
+#img-modal{display:none;position:fixed;inset:0;z-index:300;background:rgba(0,0,0,0.95);align-items:center;justify-content:center}
+#img-modal.open{display:flex}
+.modal-inner{max-width:800px;width:90%;position:relative}
+.modal-img{width:100%;max-height:70vh;object-fit:contain;display:block}
+.modal-info{padding:20px 0;border-top:1px solid rgba(255,255,255,0.2);margin-top:12px;color:#fff}
+.modal-title{font-family:var(--font-serif);font-size:24px;margin-bottom:8px}
+.modal-desc{font-size:12px;color:rgba(255,255,255,0.8);line-height:1.7}
+.modal-close{position:absolute;top:-40px;right:0;background:none;border:none;color:var(--fg2);font-size:24px;cursor:pointer;line-height:1}
+.modal-tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px}
+.modal-tag{font-size:9px;letter-spacing:0.15em;text-transform:uppercase;padding:4px 8px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.85)}
+
+/* COUNT BADGE */
+.count-badge{font-size:9px;background:var(--border);color:var(--fg2);padding:1px 5px;margin-left:4px;border-radius:10px}
+.tag-btn.active .count-badge{background:rgba(255,255,255,0.2);color:#fff}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--border)}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a class="nav-brand" href="#">
+    <span>Tasarım<em>& Hackleme</em></span>
+  </a>
+  <div class="nav-actions">
+    <button class="nav-btn" id="view-gallery-btn" onclick="showView('gallery')">Galeri</button>
+    <button class="nav-btn" id="view-about-btn" onclick="showView('about')">Hakkında</button>
+    <button class="nav-btn" onclick="openAdmin()">Admin ↗</button>
+  </div>
+</nav>
+
+<!-- HEADER -->
+<header id="main-header">
+  <div class="header-content">
+    <div class="header-label">Koleksiyon → Tasarım Düşüncesi</div>
+    <h1 class="header-title">Tasarım<em>ve Hackleme</em></h1>
+  </div>
+  <div class="header-line"></div>
+</header>
+
+<!-- TAG FILTER -->
+<div class="tag-section" id="tag-section">
+  <div class="tag-row" id="main-tags">
+    <!-- dynamically filled -->
+  </div>
+  <div class="sub-tags" id="sub-tags">
+    <!-- dynamically filled -->
+  </div>
+  <div class="sub-tags" id="third-tags">
+    <!-- dynamically filled -->
+  </div>
+</div>
+
+<!-- GALLERY -->
+<div class="gallery-wrap" id="gallery-view">
+  <div class="gallery-grid" id="gallery-grid">
+    <!-- dynamically filled -->
+  </div>
+  <div class="empty-state" id="empty-state" style="display:none">
+    <p>Bu etiket için henüz içerik yok</p>
+  </div>
+</div>
+
+<!-- IMAGE MODAL -->
+<div id="img-modal">
+  <div class="modal-inner">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <img class="modal-img" id="modal-img" src="" alt="">
+    <div class="modal-info">
+      <div class="modal-title" id="modal-title"></div>
+      <div class="modal-desc" id="modal-desc"></div>
+      <div class="modal-tags" id="modal-tags"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ADMIN PANEL -->
+<div id="admin-panel">
+  <div class="admin-login" id="admin-login">
+    <div class="admin-login-title">Admin Girişi</div>
+    <div class="form-group">
+      <label class="form-label">Kullanıcı Adı</label>
+      <input class="form-input" id="admin-username" placeholder="kullanıcı adı">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Şifre</label>
+      <input class="form-input" id="admin-password" type="password" placeholder="şifre">
+    </div>
+    <div class="admin-login-row">
+      <button class="btn-primary" onclick="loginAdmin()">Giriş Yap</button>
+      <button class="btn-ghost" onclick="closeAdmin()">Vazgeç</button>
+    </div>
+  </div>
+
+  <div id="admin-app" style="display:none">
+  <div class="admin-header">
+    <span class="admin-title">Admin Paneli</span>
+    <div class="admin-tabs">
+      <button class="admin-tab active" onclick="switchAdminTab('images')">Görseller</button>
+      <button class="admin-tab" onclick="switchAdminTab('tags')">Etiketler</button>
+    </div>
+    <button class="admin-close" onclick="closeAdmin()">Kapat ✕</button>
+  </div>
+
+  <!-- IMAGES TAB -->
+  <div class="admin-content active" id="tab-images">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:32px;max-width:1100px">
+      
+      <!-- ADD IMAGE -->
+      <div>
+        <div class="admin-tools">
+          <button class="btn-ghost" onclick="downloadDataJson()">JSON İndir</button>
+          <label class="btn-ghost" style="display:inline-flex;align-items:center">
+            JSON Yükle
+            <input id="json-import" type="file" accept="application/json" onchange="importDataJson(event)" style="display:none">
+          </label>
+        </div>
+        <div class="section-title" id="add-form-title">Yeni Görsel Ekle</div>
+        <input type="hidden" id="edit-image-id">
+        
+        <div class="form-group">
+          <label class="form-label">Görsel URL</label>
+          <div class="file-or-url">
+            <input class="form-input" id="img-url" placeholder="images/foto-1.jpg veya https://...">
+          </div>
+          <div class="file-hint">Repo içi için: images/dosya.jpg yaz. Otomatik images/ öneki de eklenir.</div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Bilgisayardan Dosya Seç</label>
+          <input class="form-input" id="img-file" type="file" accept="image/*" onchange="handleLocalFile(event)">
+          <div class="file-hint" id="img-file-name">Masaüstü dahil bilgisayarından bir görsel seçebilirsin.</div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Başlık</label>
+          <input class="form-input" id="img-title" placeholder="Görsel başlığı">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Ana Sayfa Açıklaması (default)</label>
+          <textarea class="form-textarea" id="img-desc-default" placeholder="Herhangi bir etiket seçilmediğinde gösterilecek açıklama"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Etiketler <span style="color:var(--fg2)">(birden fazla seçebilirsin)</span></label>
+          <div id="img-tag-checkboxes" style="display:flex;flex-wrap:wrap;gap:6px"></div>
+        </div>
+
+        <div id="tag-desc-fields"></div>
+
+        <div style="display:flex;gap:10px;margin-top:8px">
+          <button class="btn-primary" onclick="saveImage()">Kaydet</button>
+          <button class="btn-ghost" onclick="cancelEditImage()">İptal</button>
+        </div>
+      </div>
+
+      <!-- IMAGE LIST -->
+      <div>
+        <div class="section-title">Kayıtlı Görseller <span class="count-badge" id="img-count">0</span></div>
+        <div class="item-list" id="image-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAGS TAB -->
+  <div class="admin-content" id="tab-tags">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:32px;max-width:900px">
+      
+      <!-- ADD TAG -->
+      <div>
+        <div class="section-title" id="tag-form-title">Yeni Etiket</div>
+        <input type="hidden" id="edit-tag-id">
+
+        <div class="form-group">
+          <label class="form-label">Etiket Adı</label>
+          <input class="form-input" id="tag-name" placeholder="örn. Nasıl? / Materyal / Kullanıcı">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Üst Etiket <span style="color:var(--fg2)">(alt etiket oluşturmak için)</span></label>
+          <select class="form-select" id="tag-parent">
+            <option value="">— Ana etiket —</option>
+          </select>
+        </div>
+
+        <button class="btn-primary" onclick="saveTag()">Kaydet</button>
+        <button class="btn-ghost" style="margin-left:8px" onclick="cancelEditTag()">İptal</button>
+      </div>
+
+      <!-- TAG LIST -->
+      <div>
+        <div class="section-title">Mevcut Etiketler</div>
+        <div class="item-list" id="tag-list"></div>
+      </div>
+    </div>
+  </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+<div class="status-note" id="status-note"></div>
+
+<script>
+/* ===================== DATA STORE ===================== */
+let tags = [];
+let images = [];
+let activeTag = null;
+let activeSubTag = null;
+let activeThirdTag = null;
+let adminUnlocked = false;
+const ADMIN_USER = 'enes';
+const ADMIN_PASS = 'eylulbeyza15';
+const DATA_FILE = 'data.json';
+
+function saveData(){
+  // Bu sürümde veri bellekte tutulur; kalıcılık için JSON indirip repoya koy.
+}
+
+function getDefaultData(){
+  return {
+    tags:[
+      {id:'t1',name:'Nasıl?',parentId:null},
+      {id:'t2',name:'Ne?',parentId:null},
+      {id:'t3',name:'Kim?',parentId:null},
+      {id:'t4',name:'Neden?',parentId:null},
+      {id:'t5',name:'Materyal',parentId:'t2'},
+      {id:'t6',name:'Dijital',parentId:'t2'},
+      {id:'t7',name:'Fiziksel',parentId:'t2'},
+    ],
+    images:[
+      {
+        id:'i1',
+        url:'images/ornek-1.jpg',
+        title:'LEGO — Sonsuz Kombinasyon',
+        descDefault:'Modüler yapı sisteminin en saf hali. Her parça hem bütün hem de başlangıç noktası.',
+        tags:['t1','t2','t7'],
+        descByTag:{
+          't1':'Bağlantı mekanizması basit ama sonsuz — bir sistemi hacklemek için önce parçalarını anlamalısın.',
+          't2':'Plastikten yapılmış tasarım aracı: form ve fonksiyonun en demokratik buluşması.',
+          't7':'Dokunulabilir, üretilebilir, taşınabilir. Fiziksel üretimin oyun hali.'
+        }
+      },
+      {
+        id:'i2',
+        url:'images/ornek-2.jpg',
+        title:'Işık Tasarımı',
+        descDefault:'Işık bir araç değil, malzemedir. Gölge kadar önemli.',
+        tags:['t4','t2','t5'],
+        descByTag:{
+          't4':'Işığı kontrol etmek, algıyı kontrol etmektir — tasarımın en eski numarası.',
+          't2':'Cam, metal, foton: maddenin soyutla buluştuğu nokta.',
+          't5':'Alüminyum döküm, cam difüzör. Malzeme seçimi hem estetik hem işlev.'
+        }
+      }
+    ]
+  };
+}
+
+function normalizeImageUrl(input){
+  const val = (input || '').trim();
+  if(!val) return '';
+  if(/^https?:\/\//i.test(val) || /^data:/i.test(val) || val.startsWith('/')) return val;
+  if(val.startsWith('images/')) return val;
+  return 'images/' + val;
+}
+
+async function loadDataFromJson(){
+  try{
+    if(window.location.protocol === 'file:'){
+      throw new Error('Sayfa file:// ile aciliyor');
+    }
+    const res = await fetch(new URL(DATA_FILE, window.location.href).toString(), {cache:'no-store'});
+    if(!res.ok) throw new Error('data.json okunamadi');
+    const data = await res.json();
+    if(!Array.isArray(data.tags) || !Array.isArray(data.images)) throw new Error('Gecersiz data.json');
+    tags = data.tags;
+    images = data.images;
+    showStatusNote('');
+  }catch(_){
+    const defaults = getDefaultData();
+    tags = defaults.tags;
+    images = defaults.images;
+    showStatusNote('data.json okunamadi. Sayfayi bir local server (Live Server) uzerinden ac ve data.json dosyasinin html ile ayni klasorde oldugunu kontrol et.');
+  }
+}
+
+function getCurrentData(){
+  return {
+    tags,
+    images
+  };
+}
+
+function getTagById(tagId){
+  return tags.find(t=>t.id===tagId) || null;
+}
+
+function getTagDepth(tagId){
+  let depth = 0;
+  let current = getTagById(tagId);
+  const seen = new Set();
+  while(current && current.parentId){
+    if(seen.has(current.id)) break;
+    seen.add(current.id);
+    depth += 1;
+    current = getTagById(current.parentId);
+  }
+  return depth;
+}
+
+function getDescendantIds(tagId){
+  const ids = [tagId];
+  tags.filter(t=>t.parentId===tagId).forEach(child=>{
+    ids.push(...getDescendantIds(child.id));
+  });
+  return ids;
+}
+
+function createsTagCycle(tagId, parentId){
+  if(!parentId) return false;
+  let current = getTagById(parentId);
+  const seen = new Set();
+  while(current){
+    if(current.id === tagId) return true;
+    if(seen.has(current.id)) return true;
+    seen.add(current.id);
+    current = current.parentId ? getTagById(current.parentId) : null;
+  }
+  return false;
+}
+
+function getDescriptionForTag(img, tagId){
+  if(!tagId || !img || !img.descByTag) return img?.descDefault || '';
+  let current = getTagById(tagId);
+  while(current){
+    if(img.descByTag[current.id]) return img.descByTag[current.id];
+    current = current.parentId ? getTagById(current.parentId) : null;
+  }
+  return img.descDefault || '';
+}
+
+function downloadDataJson(){
+  const text = JSON.stringify(getCurrentData(), null, 2);
+  const blob = new Blob([text], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'data.json';
+  a.click();
+  URL.revokeObjectURL(url);
+  toast('data.json indirildi');
+}
+
+function importDataJson(event){
+  const file = event.target.files && event.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e){
+    try{
+      const data = JSON.parse(String(e.target.result || '{}'));
+      if(!Array.isArray(data.tags) || !Array.isArray(data.images)) throw new Error('Gecersiz JSON');
+      tags = data.tags;
+      images = data.images;
+      renderTags();
+      renderGallery();
+      if(adminUnlocked){
+        renderAdminTags();
+        renderAdminImages();
+        renderTagCheckboxes();
+      }
+      toast('JSON yuklendi');
+    }catch(_){
+      toast('JSON okunamadi');
+    }
+  };
+  reader.readAsText(file, 'utf-8');
+  event.target.value = '';
+}
+
+/* ===================== RENDER ===================== */
+
+function renderTags(){
+  const mainTagsEl = document.getElementById('main-tags');
+  const subTagsEl = document.getElementById('sub-tags');
+  const thirdTagsEl = document.getElementById('third-tags');
+  
+  const parentTags = tags.filter(t=>!t.parentId);
+  
+  let html = `<button class="tag-all ${activeTag===null?'active':''}" onclick="filterByTag(null)">Tümü</button>`;
+  parentTags.forEach(t=>{
+    const count = images.filter(img=>img.tags.includes(t.id)).length;
+    html += `<button class="tag-btn ${activeTag===t.id?'active':''}" onclick="filterByTag('${t.id}')">${t.name}<span class="count-badge">${count}</span></button>`;
+  });
+  mainTagsEl.innerHTML = html;
+
+  // Sub tags
+  if(activeTag){
+    const subTags = tags.filter(t=>t.parentId===activeTag);
+    if(subTags.length > 0){
+      let shtml = `<button class="tag-btn sub ${activeSubTag===null?'active':''}" onclick="filterBySubTag(null)">Hepsi</button>`;
+      subTags.forEach(t=>{
+        const count = images.filter(img=>img.tags.includes(t.id)).length;
+        shtml += `<button class="tag-btn sub ${activeSubTag===t.id?'active':''}" onclick="filterBySubTag('${t.id}')">${t.name}<span class="count-badge">${count}</span></button>`;
+      });
+      subTagsEl.innerHTML = shtml;
+      subTagsEl.classList.add('visible');
+    } else {
+      subTagsEl.classList.remove('visible');
+    }
+  } else {
+    subTagsEl.classList.remove('visible');
+  }
+
+  // Third level tags
+  if(activeSubTag){
+    const thirdTags = tags.filter(t=>t.parentId===activeSubTag);
+    if(thirdTags.length > 0){
+      let thtml = `<button class="tag-btn sub ${activeThirdTag===null?'active':''}" onclick="filterByThirdTag(null)">Hepsi</button>`;
+      thirdTags.forEach(t=>{
+        const count = images.filter(img=>img.tags.includes(t.id)).length;
+        thtml += `<button class="tag-btn sub ${activeThirdTag===t.id?'active':''}" onclick="filterByThirdTag('${t.id}')">${t.name}<span class="count-badge">${count}</span></button>`;
+      });
+      thirdTagsEl.innerHTML = thtml;
+      thirdTagsEl.classList.add('visible');
+    } else {
+      thirdTagsEl.classList.remove('visible');
+    }
+  } else {
+    thirdTagsEl.classList.remove('visible');
+  }
+}
+
+function filterByTag(tagId){
+  activeTag = tagId;
+  activeSubTag = null;
+  activeThirdTag = null;
+  renderTags();
+  renderGallery();
+}
+
+function filterBySubTag(tagId){
+  activeSubTag = tagId;
+  activeThirdTag = null;
+  renderTags();
+  renderGallery();
+}
+
+function filterByThirdTag(tagId){
+  activeThirdTag = tagId;
+  renderTags();
+  renderGallery();
+}
+
+function getActiveTagId(){
+  if(activeThirdTag) return activeThirdTag;
+  if(activeSubTag) return activeSubTag;
+  return activeTag;
+}
+
+function renderGallery(){
+  const grid = document.getElementById('gallery-grid');
+  const empty = document.getElementById('empty-state');
+  const tagId = getActiveTagId();
+  
+  let filtered = images;
+  if(tagId) filtered = images.filter(img=>img.tags.includes(tagId));
+
+  if(filtered.length === 0){
+    grid.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+
+  grid.innerHTML = filtered.map(img=>{
+    const desc = getDescriptionForTag(img, tagId);
+    const tagNames = img.tags.map(tid=>{const t=tags.find(x=>x.id===tid);return t?t.name:''}).filter(Boolean);
+    const imgContent = img.url 
+      ? `<img src="${escHtml(img.url)}" alt="${escHtml(img.title)}" loading="lazy">`
+      : `<div class="img-placeholder">Görsel Yok</div>`;
+    
+    return `<div class="gallery-item" onclick="openModal('${img.id}','${tagId||''}')">
+      ${imgContent}
+      <div class="gallery-overlay">
+        <div class="overlay-desc">${escHtml(desc)}</div>
+        <div class="overlay-tags">${tagNames.map(n=>`<span class="overlay-tag">${n}</span>`).join('')}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/* ===================== MODAL ===================== */
+
+function openModal(imgId, tagId){
+  const img = images.find(i=>i.id===imgId);
+  if(!img) return;
+  const desc = getDescriptionForTag(img, tagId);
+  document.getElementById('modal-img').src = img.url || '';
+  document.getElementById('modal-title').textContent = img.title;
+  document.getElementById('modal-desc').textContent = desc;
+  const tagNames = img.tags.map(tid=>{const t=tags.find(x=>x.id===tid);return t?t.name:''}).filter(Boolean);
+  document.getElementById('modal-tags').innerHTML = tagNames.map(n=>`<span class="modal-tag">${n}</span>`).join('');
+  document.getElementById('img-modal').classList.add('open');
+}
+function closeModal(){document.getElementById('img-modal').classList.remove('open')}
+document.getElementById('img-modal').addEventListener('click',function(e){if(e.target===this)closeModal()});
+
+/* ===================== ADMIN ===================== */
+
+function openAdmin(){
+  document.getElementById('admin-panel').classList.add('open');
+  refreshAdminAccessView();
+  if(adminUnlocked){
+    renderAdminImages();
+    renderAdminTags();
+    renderTagCheckboxes();
+  }
+}
+function closeAdmin(){
+  document.getElementById('admin-panel').classList.remove('open');
+  renderTags();
+  renderGallery();
+}
+
+function refreshAdminAccessView(){
+  document.getElementById('admin-login').style.display = adminUnlocked ? 'none' : 'block';
+  document.getElementById('admin-app').style.display = adminUnlocked ? 'block' : 'none';
+}
+
+function loginAdmin(){
+  const username = document.getElementById('admin-username').value.trim();
+  const password = document.getElementById('admin-password').value;
+  if(username === ADMIN_USER && password === ADMIN_PASS){
+    adminUnlocked = true;
+    document.getElementById('admin-password').value = '';
+    refreshAdminAccessView();
+    renderAdminImages();
+    renderAdminTags();
+    renderTagCheckboxes();
+    toast('Admin girişi başarılı');
+    return;
+  }
+  toast('Kullanıcı adı veya şifre hatalı');
+}
+
+function switchAdminTab(tab){
+  document.querySelectorAll('.admin-tab').forEach((t,i)=>{t.classList.toggle('active',['images','tags'][i]===tab)});
+  document.getElementById('tab-images').classList.toggle('active',tab==='images');
+  document.getElementById('tab-tags').classList.toggle('active',tab==='tags');
+}
+
+/* TAG ADMIN */
+function renderAdminTags(){
+  const list = document.getElementById('tag-list');
+  const parentSelect = document.getElementById('tag-parent');
+
+  const parentOpts = tags
+    .filter(t=>getTagDepth(t.id) < 2)
+    .map(t=>{
+      const depth = getTagDepth(t.id);
+      const prefix = depth === 0 ? '' : '— '.repeat(depth);
+      return `<option value="${t.id}">${prefix}${escHtml(t.name)}</option>`;
+    })
+    .join('');
+  parentSelect.innerHTML = `<option value="">— Ana etiket —</option>${parentOpts}`;
+
+  if(tags.length===0){list.innerHTML='<div style="color:var(--fg2);font-size:11px;padding:12px">Henüz etiket yok</div>';return;}
+
+  function renderTagNode(tag, depth){
+    const children = tags.filter(s=>s.parentId===tag.id);
+    const dotStyle = depth === 0 ? '' : 'style="width:6px;height:6px;background:var(--fg2)"';
+    const nameStyle = depth === 0 ? 'font-size:12px;font-weight:700' : 'font-size:11px;color:var(--fg2)';
+    const indent = depth * 18;
+    return `<div style="display:flex;align-items:center;gap:8px;padding-left:${indent}px;padding-top:${depth===0?0:8}px;width:100%">
+      <div class="tag-color-dot" ${dotStyle}></div>
+      <span style="${nameStyle}">${escHtml(tag.name)}</span>
+      <div style="margin-left:auto;display:flex;gap:6px">
+        <button class="btn-ghost" style="font-size:10px;padding:4px 10px" onclick="editTag('${tag.id}')">Düzenle</button>
+        <button class="btn-danger" onclick="deleteTag('${tag.id}')">Sil</button>
+      </div>
+    </div>${children.map(child=>renderTagNode(child, depth+1)).join('')}`;
+  }
+
+  const parent = tags.filter(t=>!t.parentId);
+  let html = '';
+  parent.forEach(t=>{
+    html += `<div class="tag-admin-item" style="flex-direction:column;align-items:flex-start">${renderTagNode(t, 0)}</div>`;
+  });
+  list.innerHTML = html || '<div style="color:var(--fg2);font-size:11px;padding:12px">Etiket yok</div>';
+}
+
+function saveTag(){
+  const id = document.getElementById('edit-tag-id').value || 'tag_'+Date.now();
+  const name = document.getElementById('tag-name').value.trim();
+  const parentId = document.getElementById('tag-parent').value || null;
+  if(!name){toast('Etiket adı boş olamaz');return;}
+  if(parentId === id){toast('Etiket kendisini parent olamaz');return;}
+  if(createsTagCycle(id, parentId)){toast('Döngüsel etiket ilişkisi olamaz');return;}
+  if(parentId && getTagDepth(parentId) >= 2){toast('En fazla 3 katman etiket desteklenir');return;}
+  const existing = tags.findIndex(t=>t.id===id);
+  if(existing>=0) tags[existing]={id,name,parentId};
+  else tags.push({id,name,parentId});
+  saveData();
+  cancelEditTag();
+  renderAdminTags();
+  renderTagCheckboxes();
+  toast('Etiket kaydedildi');
+}
+
+function editTag(id){
+  const t = tags.find(x=>x.id===id);
+  if(!t) return;
+  document.getElementById('edit-tag-id').value = t.id;
+  document.getElementById('tag-name').value = t.name;
+  document.getElementById('tag-parent').value = t.parentId||'';
+  document.getElementById('tag-form-title').textContent = 'Etiketi Düzenle';
+}
+
+function cancelEditTag(){
+  document.getElementById('edit-tag-id').value='';
+  document.getElementById('tag-name').value='';
+  document.getElementById('tag-parent').value='';
+  document.getElementById('tag-form-title').textContent='Yeni Etiket';
+}
+
+function deleteTag(id){
+  if(!confirm('Bu etiketi silmek istediğine emin misin?')) return;
+  const deletedIds = getDescendantIds(id);
+  tags = tags.filter(t=>!deletedIds.includes(t.id));
+  images.forEach(img=>{
+    img.tags = img.tags.filter(tid=>!deletedIds.includes(tid));
+    if(img.descByTag){
+      deletedIds.forEach(did=>delete img.descByTag[did]);
+    }
+  });
+  saveData();
+  renderAdminTags();
+  renderTagCheckboxes();
+  toast('Etiket silindi');
+}
+
+/* IMAGE ADMIN */
+function renderTagCheckboxes(){
+  const el = document.getElementById('img-tag-checkboxes');
+  const sortedTags = [...tags].sort((a,b)=>{
+    const da = getTagDepth(a.id);
+    const db = getTagDepth(b.id);
+    if(da !== db) return da - db;
+    return a.name.localeCompare(b.name, 'tr');
+  });
+  el.innerHTML = sortedTags.map(t=>{
+    const depth = getTagDepth(t.id);
+    const prefix = depth === 0 ? '' : '&nbsp;'.repeat(depth * 4) + '↳ ';
+    return `
+    <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:11px;padding:4px 8px;background:var(--hover);border:1px solid var(--border)">
+      <input type="checkbox" class="img-tag-check" value="${t.id}" onchange="updateTagDescFields()">
+      ${prefix}${escHtml(t.name)}
+    </label>`;
+  }).join('');
+}
+
+function updateTagDescFields(){
+  const checked = [...document.querySelectorAll('.img-tag-check:checked')].map(c=>c.value);
+  const container = document.getElementById('tag-desc-fields');
+  if(checked.length===0){container.innerHTML='';return;}
+  const descEligible = checked.filter(tid=>getTagDepth(tid) < 2);
+  const level3Selected = checked.filter(tid=>getTagDepth(tid) >= 2);
+  if(descEligible.length===0){
+    container.innerHTML = `<div style="border-top:1px solid var(--border);padding-top:16px;margin-top:4px;color:var(--fg2);font-size:11px">3. katman etiketlerde ayrı açıklama zorunlu değil; bir üst etiketten alınır.</div>`;
+    return;
+  }
+  container.innerHTML = `<div style="border-top:1px solid var(--border);padding-top:16px;margin-top:4px">
+    <div class="form-label" style="margin-bottom:12px">Etikete Özel Açıklamalar</div>
+    ${descEligible.map(tid=>{
+      const t = tags.find(x=>x.id===tid);
+      const existingVal = document.getElementById('desc_'+tid)?.value || '';
+      return `<div class="form-group">
+        <label class="form-label" style="color:var(--accent)">${t?escHtml(t.name):'?'}</label>
+        <textarea class="form-textarea" id="desc_${tid}" placeholder="${escHtml(t?t.name:'')} etiketiyle görüntülendiğinde gösterilecek açıklama">${existingVal}</textarea>
+      </div>`;
+    }).join('')}
+    ${level3Selected.length>0?`<div style="color:var(--fg2);font-size:10px">3. katman etiketler için açıklama yazmasan da olur, bir üst etiketten gösterilir.</div>`:''}
+  </div>`;
+}
+
+function renderAdminImages(){
+  const list = document.getElementById('image-list');
+  document.getElementById('img-count').textContent = images.length;
+  if(images.length===0){list.innerHTML='<div style="color:var(--fg2);font-size:11px;padding:12px">Henüz görsel yok</div>';return;}
+  list.innerHTML = images.map(img=>`
+    <div class="list-item">
+      ${img.url?`<img class="img-thumb" src="${escHtml(img.url)}" alt="">`:'<div class="img-thumb" style="display:flex;align-items:center;justify-content:center;color:var(--fg2);font-size:9px">YOK</div>'}
+      <div class="list-item-info">
+        <div class="list-item-name">${escHtml(img.title||'Başlıksız')}</div>
+        <div class="list-item-meta">${img.tags.map(tid=>{const t=tags.find(x=>x.id===tid);return t?t.name:''}).filter(Boolean).join(' · ')||'Etiket yok'}</div>
+      </div>
+      <div class="list-item-actions">
+        <button class="btn-ghost" style="font-size:10px;padding:4px 10px" onclick="editImage('${img.id}')">Düzenle</button>
+        <button class="btn-danger" onclick="deleteImage('${img.id}')">Sil</button>
+      </div>
+    </div>`).join('');
+}
+
+function saveImage(){
+  const id = document.getElementById('edit-image-id').value || 'img_'+Date.now();
+  const url = normalizeImageUrl(document.getElementById('img-url').value);
+  const title = document.getElementById('img-title').value.trim();
+  const descDefault = document.getElementById('img-desc-default').value.trim();
+  const selectedTags = [...document.querySelectorAll('.img-tag-check:checked')].map(c=>c.value);
+  const descByTag = {};
+  selectedTags.forEach(tid=>{
+    const el = document.getElementById('desc_'+tid);
+    if(el && el.value.trim()) descByTag[tid] = el.value.trim();
+  });
+  if(!title){toast('Başlık boş olamaz');return;}
+  if(!url){toast('Bir görsel URL gir veya dosya seç');return;}
+  const obj = {id,url,title,descDefault,tags:selectedTags,descByTag};
+  const existing = images.findIndex(i=>i.id===id);
+  if(existing>=0) images[existing]=obj; else images.push(obj);
+  saveData();
+  cancelEditImage();
+  renderAdminImages();
+  toast('Görsel kaydedildi');
+}
+
+function editImage(id){
+  const img = images.find(i=>i.id===id);
+  if(!img) return;
+  document.getElementById('edit-image-id').value = img.id;
+  document.getElementById('img-url').value = img.url||'';
+  document.getElementById('img-title').value = img.title||'';
+  document.getElementById('img-desc-default').value = img.descDefault||'';
+  document.querySelectorAll('.img-tag-check').forEach(c=>{c.checked=img.tags.includes(c.value)});
+  updateTagDescFields();
+  img.tags.forEach(tid=>{const el=document.getElementById('desc_'+tid);if(el&&img.descByTag&&img.descByTag[tid])el.value=img.descByTag[tid]});
+  document.getElementById('add-form-title').textContent='Görseli Düzenle';
+  document.getElementById('tab-images').scrollTop=0;
+}
+
+function cancelEditImage(){
+  document.getElementById('edit-image-id').value='';
+  document.getElementById('img-url').value='';
+  document.getElementById('img-title').value='';
+  document.getElementById('img-desc-default').value='';
+  document.getElementById('img-file').value='';
+  document.getElementById('img-file-name').textContent='Masaüstü dahil bilgisayarından bir görsel seçebilirsin.';
+  document.querySelectorAll('.img-tag-check').forEach(c=>c.checked=false);
+  document.getElementById('tag-desc-fields').innerHTML='';
+  document.getElementById('add-form-title').textContent='Yeni Görsel Ekle';
+}
+
+function handleLocalFile(event){
+  const file = event.target.files && event.target.files[0];
+  if(!file){
+    document.getElementById('img-file-name').textContent = 'Masaüstü dahil bilgisayarından bir görsel seçebilirsin.';
+    return;
+  }
+  if(!file.type.startsWith('image/')){
+    toast('Lütfen bir görsel dosyası seç');
+    event.target.value = '';
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = function(loadEvent){
+    document.getElementById('img-url').value = String(loadEvent.target.result || '');
+    document.getElementById('img-file-name').textContent = `Seçildi: ${file.name}`;
+  };
+  reader.readAsDataURL(file);
+}
+
+function deleteImage(id){
+  if(!confirm('Bu görseli silmek istediğine emin misin?')) return;
+  images = images.filter(i=>i.id!==id);
+  saveData();
+  renderAdminImages();
+  toast('Görsel silindi');
+}
+
+/* ===================== UTILS ===================== */
+function escHtml(s){if(!s)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+
+function toast(msg){
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'),2500);
+}
+
+function showStatusNote(msg){
+  const el = document.getElementById('status-note');
+  if(!msg){
+    el.textContent = '';
+    el.classList.remove('show');
+    return;
+  }
+  el.textContent = msg;
+  el.classList.add('show');
+}
+
+function showView(v){
+  document.getElementById('nav-btn-'+v+'')?.classList.add('active');
+}
+
+/* ===================== INIT ===================== */
+loadDataFromJson().then(()=>{
+  renderTags();
+  renderGallery();
+  refreshAdminAccessView();
+});
+
+/* Keyboard */
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeModal();closeAdmin()}});
+</script>
+</body>
+</html>
